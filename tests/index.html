@@ -18,11 +18,11 @@
 
 
         // Specify the dimensions of the chart.
-        const width = '1920';
-        const height = '1080';
+        const width = 1928;
+        const height = 1600;
 
         // Specify the color scale.
-        const color = d3.scaleOrdinal([1, 2, 3, 4, 5, 6], ["lightgray", "green", "#00cfff", '#008aff', 'coral', 'navy']);
+        const color = d3.scaleOrdinal(d3.schemeCategory10);
 
         // The force simulation mutates links and nodes, so create a copy
         // so that re-evaluating this cell produces the same result.
@@ -31,8 +31,8 @@
 
         // Create a simulation with several forces.
         const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).distance(200).strength(5 / links.length).id(d => d.id))
-            .force("charge", d3.forceManyBody().distanceMin(0))
+            .force("link", d3.forceLink(links).distance(100).strength(0.1).id(d => d.id))
+            .force("charge", d3.forceManyBody())
             .force("center", d3.forceCenter(width / 2, height / 2))
             .on("tick", ticked);
 
@@ -45,12 +45,11 @@
 
         // Add a line for each link, and a circle for each node.
         const link = svg.append("g")
-            .attr("stroke", "#008aff")
+            .attr("stroke", "#999")
             .attr("stroke-opacity", 1)
             .selectAll()
             .data(links)
             .join("line")
-            .attr('stroke-dasharray', d => d.value > 2 ? '0,0' : '1,5')
             .attr("stroke-width", d => Math.sqrt(d.value));
 
         const node = svg.append("g")
@@ -59,21 +58,18 @@
             .selectAll()
             .data(nodes)
             .join("circle")
-            .attr("r", d => d.group * 5)
+            .attr("r", 12)
             .attr("fill", d => color(d.group));
 
         const text = svg.append("g")
+            // .attr("stroke", "#fff")
+            // .attr("stroke-width", 1.5)
             .selectAll()
             .data(nodes)
             .join("text")
             .attr("x", 0)
             .attr("y", 0)
-            .attr('font-weight', 'bold')
-            .attr("paint-order", "stroke")
-            .attr("stroke", "white")
-            .attr("stroke-width", '8')
-
-            .attr('font-family', 'system-ui, sans-serif')
+            // .attr("fill", d => color(6))
             .attr("color", '#1d1d1f')
             .text(d => d.label);
         // Add a drag behavior.
@@ -94,8 +90,8 @@
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y);
             text
-                .attr("x", d => d.x - 32)
-                .attr("y", d => d.y + 32);
+                .attr("x", d => d.x + 16)
+                .attr("y", d => d.y + 6);
         }
 
         // Reheat the simulation when drag starts, and fix the subject position.

@@ -1,61 +1,58 @@
-const fs = require('fs');
-const path = require('path');
+import { readdirSync, writeFileSync, readFileSync, existsSync } from 'fs';
+import { readFile } from 'node:fs/promises';
+import { dirname } from 'path';
+
 
 let nodes = [];
 let links = [];
 
 
-function scanSCSSFiles(directory) {
-    const files = fs.readdirSync(directory);
 
-    files.forEach(file => {
-
-        const filePath = path.join(directory, file);
-        const stat = fs.statSync(filePath);
-
-        if (stat.isDirectory()) {
-
-        } else if (path.extname(file) === '.scss') {
-            console.log('Processing file: ' + filePath);
-            const ImportLineFound = ScanFilesForImports(path.dirname(filePath) + '/' + filePath);
-
-            if (ImportLineFound) {
-                ProcessNested(ImportLineFound, filePath);
-            }
+async function main() {
+    let entryPoint = 'tester.scss';
+    try {
+        let contents = await readFile(entryPoint, { encoding: 'utf8' });
+        console.log(contents);
+        let v1 = ScanFilesForImports(entryPoint);
+        if (v1) {
+            ProcessNested(v1, entryPoint);
         }
-    });
+    } catch (error) {
+        console.log(error);
+    }
 
 }
 
-console.log(scanSCSSFiles('./'));
 
+main();
 
 
 function ProcessNested(ImportLineFound, filePath) {
-    const currentNode = {
+    var isMain = filePath === 'tester.scss';
+    const fileEntryPoint = {
         id: filePath,
-        label: filePath,
-        group: 2
+        label: filePath + ' (entry point)',
+        group: isMain ? 4 : 3
     };
-    nodes.push(currentNode);
-
+    nodes.push(fileEntryPoint);
     ImportLineFound.forEach(linePath => {
-        console.log('  >> processing line: ' + linePath);
+
         let submoduleName = linePath.replace(/@import\s+['"](.*)['"]/g, '$1');
-        const subfilePath = path.dirname(filePath) + '/' + submoduleName + '.scss';
+        const subfilePath = dirname(filePath) + '/' + submoduleName + '.scss';
+        const fileExists = existsSync(subfilePath);
 
 
         const subNode = {
             id: subfilePath,
-            label: subfilePath,
-            group: 1
+            label: subfilePath + '_partial',
+            group: fileExists ? 2 : 1
         };
         nodes.push(subNode);
 
         const link = {
             source: filePath,
             target: subfilePath,
-            value: 2
+            value: fileExists ? 5 : 2
         }
         links.push(link);
 
@@ -71,22 +68,22 @@ function ProcessNested(ImportLineFound, filePath) {
         nodes: nodes,
         links: links
     }
-    fs.writeFileSync('tree.json', JSON.stringify(miserables));
+    writeFileSync('tree.json', JSON.stringify(miserables));
 }
 
 function ScanFilesForImports(filePath, isSubdir = false) {
     let pad = isSubdir ? '  ' : '';
-    console.log(pad + 'Scanning file: ' + filePath);
+
     let contents = ''
     try {
-        contents = fs.readFileSync(filePath, 'utf8');
-        console.log('\n' + pad + contents + '\n')
+        contents = readFileSync(filePath, 'utf8');
+
     } catch (error) {
         if (error.code === 'ENOENT') {
-            console.log(pad + `  File not found: ${filePath}`);
+
             return null;
         }
-        console.error(pad + `Error reading file: ${filePath} - ${error}`);
+
         return null;
     }
     const ImportLineFound = ParseImports(contents);
@@ -96,4 +93,3 @@ function ScanFilesForImports(filePath, isSubdir = false) {
 function ParseImports(contents) {
     return contents.match(/@import\s+['"](.*)['"]/g);
 }
-
