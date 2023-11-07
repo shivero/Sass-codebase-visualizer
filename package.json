@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "@playwright/test": "^1.39.0",
+    "playwright": "latest",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "ts": "vitest",
+    "tsui": "vitest --ui",
+    "plui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@vitest/ui": "^0.34.6",
+    "bun-types": "latest",
+    "vitest": "^0.34.6"
+  },
+  "name": "sass-codebase-visualizer",
+  "module": "index.ts",
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
