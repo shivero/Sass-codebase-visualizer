@@ -65,7 +65,7 @@ function ScanFilesForImports(filePath) {
     const fileExists = existsSync(filePath);
     const fileEntryPoint = {
         id: filePath,
-        label: filePath + ' (entry point)',
+        label: filePath,
         group: isMain ? 4 : fileExists ? 3 : 2
     };
     nodes.push(fileEntryPoint);
