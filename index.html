@@ -5,24 +5,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        body {
+            background: #1d1d1f
+        }
+
+        svg text {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
 </head>
 
 <body>
     <div id="container"></div>
     <script type="module">
-
+        //// \\\\
         import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
         // import data from "/tree.json" assert { type: "json" };
         import data from "./tree.json" assert { type: "json" };
 
-
-
+        // :: >> => &&&& features & functions &&&& << :: === === != !==
+        // @@@ jjjj 1 2 6 9
         // Specify the dimensions of the chart.
-        const width = '1920';
-        const height = '1080';
+        // const width = '1920';
+        // const height = '1080';
 
+
+        const width = document.documentElement.clientWidth;
+        const height = document.documentElement.clientHeight;
         // Specify the color scale.
-        const color = d3.scaleOrdinal([1, 2, 3, 4, 5, 6], ["lightgray", "green", "#00cfff", '#008aff', 'coral', 'navy']);
+        const color = d3.scaleOrdinal([1, 2, 3, 4, 5, 6], ["#008aff", "lightgray", "#00cfff", 'red', 'coral', 'navy']);
 
         // The force simulation mutates links and nodes, so create a copy
         // so that re-evaluating this cell produces the same result.
@@ -31,10 +46,12 @@
 
         // Create a simulation with several forces.
         const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).distance(200).strength(5 / links.length).id(d => d.id))
-            .force("charge", d3.forceManyBody().distanceMin(0))
-            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("link", d3.forceLink(links).strength(0.1).id(d => d.id))
+            .force("charge", d3.forceManyBody().distanceMax(150))
+            .force("center", d3.forceCenter(width / 6, height / 6))
             .on("tick", ticked);
+
+
 
         // Create the SVG container.
         const svg = d3.create("svg")
@@ -50,16 +67,17 @@
             .selectAll()
             .data(links)
             .join("line")
+            .attr("value", d => d.value)
             .attr('stroke-dasharray', d => d.value > 2 ? '0,0' : '1,5')
             .attr("stroke-width", d => Math.sqrt(d.value));
 
         const node = svg.append("g")
-            .attr("stroke", "#fff")
-            .attr("stroke-width", 1.5)
+            .attr("stroke", "#1d1d1f")
+            .attr("stroke-width", 4)
             .selectAll()
             .data(nodes)
             .join("circle")
-            .attr("r", d => d.group * 5)
+            .attr("r", d => d.group * 4)
             .attr("fill", d => color(d.group));
 
         const text = svg.append("g")
@@ -70,11 +88,13 @@
             .attr("y", 0)
             .attr('font-weight', 'bold')
             .attr("paint-order", "stroke")
-            .attr("stroke", "white")
-            .attr("stroke-width", '8')
-
+            .attr("stroke", "#1d1d1f")
+            // .attr("stroke-width", '2')
+            .attr('filter', 'drop-shadow(0px 0px 2px rgb(0 0 0 / 1))')
             .attr('font-family', 'system-ui, sans-serif')
-            .attr("color", '#1d1d1f')
+            .attr('font-size', '0.875rem')
+            .attr("fill", 'white')
+            .attr("user-select", "none")
             .text(d => d.label);
         // Add a drag behavior.
         node.call(d3.drag()
@@ -84,18 +104,20 @@
 
         // Set the position attributes of links and nodes each time the simulation ticks.
         function ticked() {
+            var k = 3;
+            // console.log(simulation.alpha(), simulation.alphaMin(), simulation.alphaDecay());
             link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
+                .attr("x1", d => d.source.x * k)
+                .attr("y1", d => d.source.y * k)
+                .attr("x2", d => d.target.x * k)
+                .attr("y2", d => d.target.y * k);
 
             node
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y);
+                .attr("cx", d => d.x * k)
+                .attr("cy", d => d.y * k);
             text
-                .attr("x", d => d.x - 32)
-                .attr("y", d => d.y + 32);
+                .attr("x", d => (d.x + 6) * k)
+                .attr("y", d => (d.y + 1) * k);
         }
 
         // Reheat the simulation when drag starts, and fix the subject position.
