@@ -24,33 +24,48 @@
     <script type="module">
         //// \\\\
         import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-        // import data from "/tree.json" assert { type: "json" };
         import data from "./tree.json" assert { type: "json" };
-
-        // :: >> => &&&& features & functions &&&& << :: === === != !==
-        // @@@ jjjj 1 2 6 9
-        // Specify the dimensions of the chart.
-        // const width = '1920';
-        // const height = '1080';
 
 
         const width = document.documentElement.clientWidth;
         const height = document.documentElement.clientHeight;
         // Specify the color scale.
-        const color = d3.scaleOrdinal([1, 2, 3, 4, 5, 6], ["#008aff", "lightgray", "#00cfff", 'red', 'coral', 'navy']);
+        const color = d3.scaleOrdinal([1, 2, 3, 4, 5, 6], ['red', "#00cfff", "#555", 'red', 'coral', 'navy']);
 
         // The force simulation mutates links and nodes, so create a copy
         // so that re-evaluating this cell produces the same result.
         const links = data.links.map(d => ({ ...d }));
         const nodes = data.nodes.map(d => ({ ...d }));
+        const legendStartX = 48;
+        const legendStartY = 16;
+        const config = {
+            entryNode: {
+                color: 'red',
+                radius: 24,
+            },
+            importedNode: {
+                color: '#00cfff',
+                radius: 18,
+            },
+            notFoundNode: {
+                color: '#555',
+                radius: 12,
+            }
+        }
 
+
+        const legend = [
+            { "id": "Entry file", "label": "Entry file", "posY": 24, "color": config.entryNode.color, "radius": config.entryNode.radius },
+            { "id": "Imported file", "label": "Imported file", "posY": 72, "color": config.importedNode.color, "radius": config.importedNode.radius },
+            { "id": "File not found", "label": "File not found", "posY": 120, "color": config.notFoundNode.color, "radius": config.notFoundNode.radius },
+        ]
+        console.log(legend);
         // Create a simulation with several forces.
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).strength(0.1).id(d => d.id))
             .force("charge", d3.forceManyBody().distanceMax(150))
             .force("center", d3.forceCenter(width / 6, height / 6))
             .on("tick", ticked);
-
 
 
         // Create the SVG container.
@@ -60,16 +75,44 @@
             .attr("viewBox", [0, 0, width, height])
             .attr("style", "max-width: 100%; height: auto;");
 
+        const legendNode = svg.append("g")
+            .attr('data-value', 'legendNode')
+            .attr("stroke", "#1d1d1f")
+            .attr("stroke-width", 4)
+            .selectAll()
+            .data(legend)
+            .join("circle")
+            .attr("r", d => d.radius)
+            .attr("fill", d => d.color)
+            .attr("cx", legendStartX)
+            .attr("cy", d => d.posY + legendStartY + 6)
+
+        const legendText = svg.append("g")
+            .selectAll()
+            .data(legend)
+            .join("text")
+            .attr("x", legendStartX + 32)
+            .attr("y", d => d.posY + legendStartY + 6)
+            .attr("paint-order", "stroke")
+            .attr('filter', 'drop-shadow(0px 0px 2px rgb(0 0 0 / 1))')
+            .attr('font-family', 'system-ui, sans-serif')
+            .attr('font-size', '1rem')
+            .attr("fill", 'white')
+            .attr("user-select", "none")
+            .text(d => d.label);
+
+
         // Add a line for each link, and a circle for each node.
         const link = svg.append("g")
-            .attr("stroke", "#008aff")
             .attr("stroke-opacity", 1)
+            .attr("stroke", 'red')
             .selectAll()
             .data(links)
             .join("line")
             .attr("value", d => d.value)
-            .attr('stroke-dasharray', d => d.value > 2 ? '0,0' : '1,5')
-            .attr("stroke-width", d => Math.sqrt(d.value));
+            .attr("stroke", d => d.value == 1 ? '#1DA1F2' : '#555')
+            .attr('stroke-dasharray', d => d.value > 0 ? '0,0' : '6,6')
+            .attr("stroke-width", d => d.value + 1);
 
         const node = svg.append("g")
             .attr("stroke", "#1d1d1f")
@@ -77,8 +120,9 @@
             .selectAll()
             .data(nodes)
             .join("circle")
-            .attr("r", d => d.group * 4)
-            .attr("fill", d => color(d.group));
+            .attr("r", d => 24 / d.group)
+            .attr("fill", d => color(d.group))
+            .attr("group", d => d.group);
 
         const text = svg.append("g")
             .selectAll()
@@ -115,6 +159,7 @@
             node
                 .attr("cx", d => d.x * k)
                 .attr("cy", d => d.y * k);
+
             text
                 .attr("x", d => (d.x + 6) * k)
                 .attr("y", d => (d.y + 1) * k);

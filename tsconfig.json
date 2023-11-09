@@ -1,10 +1,16 @@
 {
     "compilerOptions": {
-        "baseUrl": ".", // This must be specified if "paths" is.
-        "paths": {
-            "@myhelper/*": [
-                "packages/myhelper/*"
-            ] // This mapping is relative to "baseUrl".
-        }
-    }
+        "target": "ES6",
+        "module": "ESNext",
+        "skipLibCheck": true,
+    },
+    "files": [
+        "visualizer.ts"
+    ],
+    "exclude": [
+        "**/node_modules/**"
+    ],
+    "include": [
+        "visualizer.ts"
+    ]
 }
