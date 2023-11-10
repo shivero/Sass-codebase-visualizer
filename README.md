@@ -16,3 +16,5 @@ It is consisted of two parts:
 5. Open `index.html` in your browser. Webpage will automatically load the JSON file and display the structure of your codebase using d3.js library
 
 
+Preview
+![Preview](src/structure.gif)
