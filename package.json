@@ -5,9 +5,7 @@
     "typescript": "^5.2.2"
   },
   "scripts": {
-    "ts": "vitest",
-    "tsui": "vitest --ui",
-    "plui": "playwright test --ui",
+    "start": "",
     "build": "tsc --p ./tsconfig.json"
   },
   "devDependencies": {

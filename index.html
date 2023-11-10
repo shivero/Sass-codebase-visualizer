@@ -20,9 +20,15 @@
 </head>
 
 <body>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 100" style="display:none">
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="17" refY="3.5" fill="white" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>
     <div id="container"></div>
     <script type="module">
-        //// \\\\
         import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
         import data from "./tree.json" assert { type: "json" };
 
@@ -52,14 +58,11 @@
                 radius: 12,
             }
         }
-
-
         const legend = [
             { "id": "Entry file", "label": "Entry file", "posY": 24, "color": config.entryNode.color, "radius": config.entryNode.radius },
             { "id": "Imported file", "label": "Imported file", "posY": 72, "color": config.importedNode.color, "radius": config.importedNode.radius },
             { "id": "File not found", "label": "File not found", "posY": 120, "color": config.notFoundNode.color, "radius": config.notFoundNode.radius },
         ]
-        console.log(legend);
         // Create a simulation with several forces.
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).strength(0.1).id(d => d.id))
@@ -92,7 +95,7 @@
             .data(legend)
             .join("text")
             .attr("x", legendStartX + 32)
-            .attr("y", d => d.posY + legendStartY + 6)
+            .attr("y", d => d.posY + legendStartY + 12)
             .attr("paint-order", "stroke")
             .attr('filter', 'drop-shadow(0px 0px 2px rgb(0 0 0 / 1))')
             .attr('font-family', 'system-ui, sans-serif')
@@ -112,6 +115,7 @@
             .attr("value", d => d.value)
             .attr("stroke", d => d.value == 1 ? '#1DA1F2' : '#555')
             .attr('stroke-dasharray', d => d.value > 0 ? '0,0' : '6,6')
+            .attr('marker-end', 'url(#arrowhead)')
             .attr("stroke-width", d => d.value + 1);
 
         const node = svg.append("g")
@@ -133,7 +137,6 @@
             .attr('font-weight', 'bold')
             .attr("paint-order", "stroke")
             .attr("stroke", "#1d1d1f")
-            // .attr("stroke-width", '2')
             .attr('filter', 'drop-shadow(0px 0px 2px rgb(0 0 0 / 1))')
             .attr('font-family', 'system-ui, sans-serif')
             .attr('font-size', '0.875rem')
@@ -186,13 +189,6 @@
             event.subject.fy = null;
         }
 
-        // When this cell is re-run, stop the previous simulation. (This doesn’t
-        // really matter since the target alpha is zero and the simulation will
-        // stop naturally, but it’s a good practice.)
-        // invalidation.then(() => simulation.stop());
-
-
-
         // Append the SVG element.
         container.append(svg.node());
 
@@ -203,5 +199,3 @@
 </body>
 
 </html>
-
-<!DOCTYPE html>
