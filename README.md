@@ -2,7 +2,7 @@
 
 This tool has been created to visualize the structure of a Sass codebase.
 It is consisted of two parts:
-- Node.js script that parses the reads entry file  and generates a JSON file with all imported files along with their dependencies
+- Node.js script that reads entry file and generates a JSON file with all imported files along with their dependencies
 - `index.html` file which imports JSON file and displays the structure of the codebase
 
 ## DEMO
