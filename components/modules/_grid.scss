@@ -1,0 +1,6 @@
+@import 'test';
+.grid{
+    &--item{
+        background-color: red;
+    }
+}

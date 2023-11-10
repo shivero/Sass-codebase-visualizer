@@ -7,18 +7,21 @@ class Visualizer {
     private nodes = [];
     private links = [];
 
-    constructor(enryPoint: string) {
-        console.log('Visualizer created', enryPoint);
-        this.entryPoint = enryPoint;
-
+    constructor() {
+        if (process.argv[2]) {
+            this.entryPoint = process.argv[2];
+        }
     }
 
     private processNested(ImportLineFound: string[], filePath: string) {
         ImportLineFound.forEach((linePath: string) => {
+            console.log(`${this.pad(2)}Processing ${linePath} from ${filePath}`);
             let submoduleName = linePath.replace(/@import\s+['"](.*)['"]/g, '$1');
-            const subfilePath = dirname(filePath) + '/' + submoduleName + '.scss';
+            let subfilePath = dirname(filePath) + '/' + submoduleName + '.scss';
 
-            const fileExists = existsSync(subfilePath);
+            let fileExists = existsSync(subfilePath);
+
+            ({ fileExists, subfilePath } = this.tryResolveWithUnderscore(fileExists, subfilePath));
 
             const link = {
                 source: filePath,
@@ -38,28 +41,46 @@ class Visualizer {
 
     }
 
+    private tryResolveWithUnderscore(fileExists: boolean, subfilePath: string) {
+        if (!fileExists) {
+            var subfilePathWithUnderscore = subfilePath.replace(/\/([^\/]*)$/, '/_$1');
+            this.logMessage('info', `${this.pad(4)}File not found - resolving with underscore: ${subfilePathWithUnderscore}`);
+            try {
+                fileExists = existsSync(subfilePathWithUnderscore);
+                if (fileExists) {
+                    subfilePath = subfilePathWithUnderscore;
+                }
+            } catch (error) {
+                console.log(`${this.pad(4)}File not found:`, subfilePathWithUnderscore);
+            }
+        }
+        return { fileExists, subfilePath };
+    }
+
     private scanFilesForImports(filePath: string) {
+        let contents = '';
         const fileExists = existsSync(filePath);
         const isMain = filePath === this.entryPoint;
-        const fileEntryPoint = {
-            id: filePath,
-            label: filePath,
-            group: isMain ? 1 : fileExists ? 2 : 3
-        };
-        this.nodes.push(fileEntryPoint);
-        let contents = '';
         try {
             contents = readFileSync(filePath, 'utf8');
 
         } catch (error) {
             if (error.code === 'ENOENT') {
-                console.log('File not found:', filePath);
+                this.logMessage('error', `${this.pad(4)} File not found: ${filePath}`);
+
             }
             else {
-                console.log('Error reading file', error.code, filePath);
+                this.logMessage('error', `Error reading file ${error.code} in ${filePath}`);
             }
-
         }
+        var fileName = filePath.replace(/^.*[\\\/]/, '');
+        const node = {
+            id: filePath,
+            label: fileName,
+            group: isMain ? 1 : fileExists ? 2 : 3
+        };
+        this.nodes.push(node);
+
         const ImportLineFound = this.parseImports(contents);
         return ImportLineFound;
     }
@@ -67,18 +88,42 @@ class Visualizer {
     private parseImports(contents: string) {
         return contents.match(/@import\s+['"](.*)['"]/g);
     }
+    private pad(n: number) {
+        return Array(n).join(' ');
+    }
+    private logMessage(type: string, message: string) {
+        const colorCodes = {
+            'info': '\x1b[34m%s\x1b[0m', // Blue
+            'success': '\x1b[32m%s\x1b[0m', // Green
+            'warning': '\x1b[33m%s\x1b[0m', // Yellow
+            'error': '\x1b[31m%s\x1b[0m' // Red
+        };
+
+        console.log(colorCodes[type], message);
+    }
 
     public main() {
+        if (!this.entryPoint) {
+            this.logMessage('error', 'Please provide entry point as a parameter');
+            return;
+        }
+        this.logMessage('success', `Visualizer starts in: ${this.entryPoint}`);
         try {
             let importLines = this.scanFilesForImports(this.entryPoint);
             if (importLines) {
                 this.processNested(importLines, this.entryPoint);
             }
-            const miserables = {
+            const tree = {
                 nodes: this.nodes,
                 links: this.links
             }
-            writeFileSync('tree.json', JSON.stringify(miserables));
+            try {
+                writeFileSync('tree.json', JSON.stringify(tree));
+                this.logMessage('success', 'Visualizer finished');
+            }
+            catch (error) {
+                this.logMessage('error', 'Error writing to file');
+            }
         } catch (error) {
             console.log(error);
         }
@@ -88,5 +133,5 @@ class Visualizer {
 export { Visualizer };
 
 
-let visualizer = new Visualizer('tester.scss');
-visualizer.main();  
+let visualizer = new Visualizer();
+visualizer.main();
